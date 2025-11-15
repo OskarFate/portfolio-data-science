@@ -1,8 +1,7 @@
 -- ========================================
 -- DESACTIVAR ROW LEVEL SECURITY (RLS)
 -- ========================================
--- Ejecuta estos comandos en el SQL Editor de Supabase
--- https://supabase.com/dashboard/project/bajkdvhooousgtahuslp/sql
+-- Ejecuta estos comandos en el SQL Editor de tu proyecto Supabase
 
 -- Desactivar RLS en todas las tablas
 ALTER TABLE settings DISABLE ROW LEVEL SECURITY;
