@@ -47,7 +47,7 @@ export default function Blog() {
   }, [selectedCategory, searchQuery, posts])
 
   // Extraer todas las categorías únicas
-  const allCategories = ['Todos', ...new Set(posts.flatMap(p => p.technologies || []))]
+  const allCategories = ['Todos', ...Array.from(new Set(posts.flatMap(p => p.technologies || [])))]
 
   const weekPosts = posts.filter(p => p.week_number && p.week_number > 0)
   const totalWeeks = weekPosts.length
