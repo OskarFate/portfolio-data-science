@@ -210,7 +210,7 @@ export default function JourneyAdmin() {
             <span className="text-2xl mr-3">✅</span>
             <div>
               <strong>¡Datos guardados exitosamente!</strong>
-              <p className="text-sm mt-1">Los cambios se verán reflejados en la página "Sobre Mí".</p>
+              <p className="text-sm mt-1">Los cambios se verán reflejados en la página &quot;Sobre Mí&quot;.</p>
             </div>
           </div>
         )}
