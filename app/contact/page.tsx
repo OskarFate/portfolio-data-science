@@ -81,15 +81,15 @@ export default function Contact() {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"></div>
         
         <div className="max-w-5xl mx-auto relative z-10">
-          <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-            Contacto
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-            ¿Tienes alguna pregunta o propuesta? ¡Me encantaría escucharte! 
-            Puedes contactarme por cualquiera de estos medios.
-          </p>
-        </div>
+          <div className="text-center">
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+              Contacto
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              ¿Tienes alguna pregunta o propuesta? ¡Me encantaría escucharte! 
+              Puedes contactarme por cualquiera de estos medios.
+            </p>
+          </div>
         </div>
       </section>
 

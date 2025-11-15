@@ -109,7 +109,7 @@ export default function Skills() {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"></div>
         
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-12">
+          <div className="text-center">
             <div className="inline-flex items-center justify-center mb-6">
               <Sparkles className="w-8 h-8 text-blue-600 dark:text-blue-400 mr-3" />
               <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white">
