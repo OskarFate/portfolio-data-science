@@ -13,7 +13,7 @@ export default function Settings() {
     title: 'Data Scientist & Business Analyst',
     bio: 'Transformando datos en decisiones estratégicas. Roadmap de 104 semanas: Python, SQL, Machine Learning y Cloud Engineering.',
     email: 'contacto@oskarpardo.dev',
-    phone: '+56921892848',
+    phone: '',
     location: 'Concepción, Chile',
     
     // Social Links

@@ -28,7 +28,7 @@ export default function MigratePage() {
             name: 'Oskar Pardo Salazar',
             title: 'Data Scientist & Business Analyst',
             email: 'contacto@oskarpardo.dev',
-            phone: '+56921892848',
+            phone: '',
             location: 'Concepción, Chile',
             bio: 'Transformando datos en decisiones estratégicas',
             github: 'https://github.com/OskarFate',

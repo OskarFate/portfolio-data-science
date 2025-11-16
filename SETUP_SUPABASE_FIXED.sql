@@ -123,7 +123,7 @@ UPDATE settings SET
   name = 'Oskar Pardo Salazar',
   title = 'Data Scientist & Business Analyst',
   email = 'contacto@oskarpardo.dev',
-  phone = '+56921892848',
+  phone = '',
   location = 'Concepción, Chile',
   bio = E'Transformando datos en decisiones estratégicas.\n\nRoadmap de 104 semanas: Python, SQL, Machine Learning y Cloud Engineering.',
   github = 'https://github.com/OskarFate',

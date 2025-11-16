@@ -23,7 +23,7 @@ export default function Contact() {
     title: 'Data Scientist & Business Analyst',
     bio: '',
     email: 'contacto@oskarpardo.dev',
-    phone: '+56921892848',
+    phone: '',
     location: 'Concepción, Chile',
     linkedin: 'https://www.linkedin.com/in/oskarpardo/',
     github: 'https://github.com/OskarFate',
