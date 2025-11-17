@@ -2,15 +2,17 @@
 
 ## Contraseña del Admin
 
-La contraseña se configura en las **variables de entorno** por seguridad.
+La contraseña se configura en las **variables de entorno** por seguridad y **NUNCA se expone en el código**.
 
 ### Configuración Local
 
 Agrega esta línea a tu archivo `.env.local`:
 
 ```bash
-ADMIN_PASSWORD=oskarpardo1
+ADMIN_PASSWORD=tu_contraseña_segura_aqui
 ```
+
+**IMPORTANTE:** El archivo `.env.local` está protegido por `.gitignore` y NUNCA se sube a GitHub.
 
 ### Configuración en Vercel (Producción)
 
@@ -18,7 +20,7 @@ ADMIN_PASSWORD=oskarpardo1
 2. Settings → Environment Variables
 3. Agrega una nueva variable:
    - **Name:** `ADMIN_PASSWORD`
-   - **Value:** `oskarpardo1` (o la que prefieras)
+   - **Value:** `tu_contraseña_segura` (la misma que en .env.local)
    - **Environments:** ✓ Production ✓ Preview ✓ Development
 4. Click "Save"
 5. Haz un nuevo deploy para que tome efecto
