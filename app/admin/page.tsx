@@ -1,12 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { FileText, Code, Briefcase, Settings, BarChart3, Calendar, MapPin, Database, TrendingUp, CheckCircle, Target, Clock, Zap, Award, Upload, Github } from 'lucide-react'
+import { FileText, Code, Briefcase, Settings, BarChart3, Calendar, MapPin, Database, TrendingUp, CheckCircle, Target, Clock, Zap, Award, Upload, Github, LogOut } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { getSettings, getSkills, getProjects, getPosts } from '@/lib/supabase-helpers'
 import type { Post } from '@/lib/supabase'
 
 export default function AdminDashboard() {
+  const router = useRouter()
   const [stats, setStats] = useState({
     posts: 0,
     projects: 0,
@@ -25,6 +27,15 @@ export default function AdminDashboard() {
   const [greeting, setGreeting] = useState('Hola')
   const [deploying, setDeploying] = useState(false)
   const [deployMessage, setDeployMessage] = useState('')
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/logout', { method: 'POST' })
+      router.push('/admin/login')
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error)
+    }
+  }
 
   const handleAutoDeploy = async () => {
     setDeploying(true)
@@ -246,24 +257,36 @@ export default function AdminDashboard() {
                   </div>
                 </div>
                 
-                {/* Auto Deploy Button */}
-                <button
-                  onClick={handleAutoDeploy}
-                  disabled={deploying}
-                  className="flex items-center gap-2 px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm border-2 border-white/40 text-white rounded-xl transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
-                >
-                  {deploying ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Desplegando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Github className="w-5 h-5" />
-                      <span>Deploy a GitHub</span>
-                    </>
-                  )}
-                </button>
+                {/* Buttons Row */}
+                <div className="flex gap-2">
+                  {/* Auto Deploy Button */}
+                  <button
+                    onClick={handleAutoDeploy}
+                    disabled={deploying}
+                    className="flex items-center gap-2 px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm border-2 border-white/40 text-white rounded-xl transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                  >
+                    {deploying ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>Desplegando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Github className="w-5 h-5" />
+                        <span>Deploy</span>
+                      </>
+                    )}
+                  </button>
+                  
+                  {/* Logout Button */}
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-4 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white rounded-xl transition-all font-semibold shadow-lg hover:shadow-xl"
+                    title="Cerrar sesión"
+                  >
+                    <LogOut className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             </div>
             
