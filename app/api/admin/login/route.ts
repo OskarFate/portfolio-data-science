@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/response'
+import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
 // Contraseña desde variable de entorno (configúrala en .env.local y en Vercel)
