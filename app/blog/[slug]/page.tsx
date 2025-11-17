@@ -1,34 +1,10 @@
-import fs from 'fs'
-import path from 'path'
-import matter from 'gray-matter'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import Link from 'next/link'
 import { Calendar, Clock, ArrowLeft } from 'lucide-react'
-
-async function getPost(slug: string) {
-  const postsDirectory = path.join(process.cwd(), 'content/blog')
-  const fullPath = path.join(postsDirectory, `${slug}.md`)
-  
-  if (!fs.existsSync(fullPath)) {
-    return null
-  }
-
-  const fileContents = fs.readFileSync(fullPath, 'utf8')
-  const { data, content } = matter(fileContents)
-
-  return {
-    slug,
-    title: data.title || 'Sin título',
-    date: data.date || new Date().toISOString(),
-    excerpt: data.excerpt || '',
-    category: data.category || 'General',
-    readTime: data.readTime || '5 min',
-    content,
-  }
-}
+import { getPostBySlug } from '@/lib/supabase-helpers'
 
 export default async function BlogPost({ params }: { params: { slug: string } }) {
-  const post = await getPost(params.slug)
+  const post = await getPostBySlug(params.slug)
 
   if (!post) {
     return (
@@ -37,7 +13,14 @@ export default async function BlogPost({ params }: { params: { slug: string } })
           <h1 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
             Post no encontrado
           </h1>
-          <Link href="/blog" className="text-primary-600 dark:text-primary-400 hover:underline">
+          <p className="text-gray-600 dark:text-gray-400 mb-8">
+            El post que buscas no existe o fue eliminado.
+          </p>
+          <Link 
+            href="/blog" 
+            className="inline-flex items-center px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Volver al blog
           </Link>
         </div>
@@ -61,7 +44,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
         <header className="mb-8">
           <div className="mb-4">
             <span className="px-3 py-1 bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 rounded-md text-sm">
-              {post.category}
+              {post.tags?.[0] || 'General'}
             </span>
           </div>
           
@@ -72,7 +55,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
           <div className="flex items-center gap-6 text-gray-600 dark:text-gray-400">
             <div className="flex items-center">
               <Calendar className="w-4 h-4 mr-2" />
-              {new Date(post.date).toLocaleDateString('es-ES', {
+              {new Date(post.published_at || post.created_at).toLocaleDateString('es-ES', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
@@ -80,7 +63,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
             </div>
             <div className="flex items-center">
               <Clock className="w-4 h-4 mr-2" />
-              {post.readTime}
+              {post.reading_time || 5} min de lectura
             </div>
           </div>
         </header>
