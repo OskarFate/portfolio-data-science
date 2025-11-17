@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { FileText, Code, Briefcase, Settings, BarChart3, Calendar, MapPin, Database, TrendingUp, CheckCircle, Target, Clock, Zap, Award } from 'lucide-react'
+import { FileText, Code, Briefcase, Settings, BarChart3, Calendar, MapPin, Database, TrendingUp, CheckCircle, Target, Clock, Zap, Award, Upload, Github } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { getSettings, getSkills, getProjects, getPosts } from '@/lib/supabase-helpers'
 import type { Post } from '@/lib/supabase'
@@ -23,6 +23,43 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [userName, setUserName] = useState('Admin')
   const [greeting, setGreeting] = useState('Hola')
+  const [deploying, setDeploying] = useState(false)
+  const [deployMessage, setDeployMessage] = useState('')
+
+  const handleAutoDeploy = async () => {
+    setDeploying(true)
+    setDeployMessage('📦 Exportando datos...')
+    
+    try {
+      // 1. Exportar datos
+      const exportRes = await fetch('/api/export-data', { method: 'POST' })
+      if (!exportRes.ok) throw new Error('Error exportando datos')
+      
+      setDeployMessage('🚀 Subiendo a GitHub...')
+      
+      // 2. Hacer commit y push
+      const deployRes = await fetch('/api/auto-deploy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `Auto-update: Cambios desde admin - ${new Date().toLocaleDateString()}`
+        })
+      })
+      
+      const result = await deployRes.json()
+      
+      if (result.success) {
+        setDeployMessage('✅ ' + result.message)
+        setTimeout(() => setDeployMessage(''), 5000)
+      } else {
+        setDeployMessage('❌ ' + (result.error || 'Error desconocido'))
+      }
+    } catch (error: any) {
+      setDeployMessage('❌ Error: ' + error.message)
+    } finally {
+      setDeploying(false)
+    }
+  }
 
   useEffect(() => {
     // Set greeting based on time
@@ -172,42 +209,76 @@ export default function AdminDashboard() {
           {/* Animated background */}
           <div className="absolute inset-0 bg-white/5 animate-pulse"></div>
           
-          <div className="relative z-10 flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
-                👋 {greeting}, {userName}
-              </h1>
-              <p className="text-white/90 text-lg mb-4">
-                {stats.currentWeek === 0 
-                  ? '¡Comienza tu viaje de 104 semanas hacia Data Science hoy!' 
-                  : `Llevas ${stats.daysInRoadmap} días en tu roadmap. ¡Sigue adelante!`}
-              </p>
-              
-              {/* Quick stats */}
-              <div className="flex items-center gap-6 text-white/80 text-sm">
-                <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4" />
-                  <span>{stats.weeklyStreak} {stats.weeklyStreak === 1 ? 'semana' : 'semanas'} consecutivas</span>
-                </div>
-                {stats.draftPosts > 0 && (
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
+                  👋 {greeting}, {userName}
+                </h1>
+                <p className="text-white/90 text-lg mb-4">
+                  {stats.currentWeek === 0 
+                    ? '¡Comienza tu viaje de 104 semanas hacia Data Science hoy!' 
+                    : `Llevas ${stats.daysInRoadmap} días en tu roadmap. ¡Sigue adelante!`}
+                </p>
+                
+                {/* Quick stats */}
+                <div className="flex items-center gap-6 text-white/80 text-sm">
                   <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    <span>{stats.draftPosts} {stats.draftPosts === 1 ? 'borrador' : 'borradores'}</span>
+                    <Zap className="w-4 h-4" />
+                    <span>{stats.weeklyStreak} {stats.weeklyStreak === 1 ? 'semana' : 'semanas'} consecutivas</span>
                   </div>
-                )}
+                  {stats.draftPosts > 0 && (
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      <span>{stats.draftPosts} {stats.draftPosts === 1 ? 'borrador' : 'borradores'}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="hidden md:flex flex-col gap-4 items-end">
+                <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center min-w-[140px] border-2 border-white/30">
+                  <div className="text-6xl font-bold text-white mb-2">
+                    {stats.roadmapProgress.toFixed(1)}%
+                  </div>
+                  <div className="text-white/90 text-sm font-semibold uppercase tracking-wide">
+                    Completado
+                  </div>
+                </div>
+                
+                {/* Auto Deploy Button */}
+                <button
+                  onClick={handleAutoDeploy}
+                  disabled={deploying}
+                  className="flex items-center gap-2 px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm border-2 border-white/40 text-white rounded-xl transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                >
+                  {deploying ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Desplegando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Github className="w-5 h-5" />
+                      <span>Deploy a GitHub</span>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
             
-            <div className="hidden md:block">
-              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center min-w-[140px] border-2 border-white/30">
-                <div className="text-6xl font-bold text-white mb-2">
-                  {stats.roadmapProgress.toFixed(1)}%
-                </div>
-                <div className="text-white/90 text-sm font-semibold uppercase tracking-wide">
-                  Completado
-                </div>
+            {/* Deploy Message */}
+            {deployMessage && (
+              <div className={`mt-4 px-4 py-3 rounded-lg ${
+                deployMessage.startsWith('✅') 
+                  ? 'bg-green-500/20 border border-green-300/30 text-white' 
+                  : deployMessage.startsWith('❌')
+                  ? 'bg-red-500/20 border border-red-300/30 text-white'
+                  : 'bg-blue-500/20 border border-blue-300/30 text-white'
+              }`}>
+                {deployMessage}
               </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -564,6 +635,25 @@ export default function AdminDashboard() {
             ← Volver al sitio público
           </Link>
         </div>
+
+        {/* Floating Deploy Button (Mobile) */}
+        <button
+          onClick={handleAutoDeploy}
+          disabled={deploying}
+          className="md:hidden fixed bottom-6 right-6 flex items-center gap-2 px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed z-50"
+        >
+          {deploying ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <span>Deploy...</span>
+            </>
+          ) : (
+            <>
+              <Github className="w-5 h-5" />
+              <span>Deploy</span>
+            </>
+          )}
+        </button>
       </div>
     </div>
   )

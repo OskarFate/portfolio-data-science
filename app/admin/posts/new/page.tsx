@@ -2,19 +2,27 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Save, Eye } from 'lucide-react'
+import { ArrowLeft, Save, Eye, Upload, Check } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { createPost } from '@/lib/supabase-helpers'
 
 export default function NewPost() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     title: '',
     date: new Date().toISOString().split('T')[0],
     excerpt: '',
     category: 'Reflexiones',
     readTime: '5 min',
-    content: ''
+    content: '',
+    technologies: [] as string[],
+    weekNumber: 0,
+    published: true
   })
 
   const [preview, setPreview] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveMessage, setSaveMessage] = useState('')
 
   const categories = [
     'Reflexiones',
@@ -36,35 +44,77 @@ export default function NewPost() {
     })
   }
 
-  const generateMarkdown = () => {
-    return `---
-title: "${formData.title}"
-date: "${formData.date}"
-excerpt: "${formData.excerpt}"
-category: "${formData.category}"
-readTime: "${formData.readTime}"
----
-
-${formData.content}`
+  const handleTechnologiesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const techs = e.target.value.split(',').map(t => t.trim()).filter(t => t)
+    setFormData({ ...formData, technologies: techs })
   }
 
-  const handleSave = () => {
-    const markdown = generateMarkdown()
-    const blob = new Blob([markdown], { type: 'text/markdown' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    const slug = formData.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '')
-    a.download = `${slug}.md`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    
-    alert('Post guardado! Mueve el archivo .md a la carpeta content/blog/')
+  const handleSaveToSupabase = async () => {
+    if (!formData.title || !formData.excerpt || !formData.content) {
+      alert('Por favor completa título, excerpt y contenido')
+      return
+    }
+
+    setSaving(true)
+    setSaveMessage('💾 Guardando en Supabase...')
+
+    try {
+      // Generar slug
+      const slug = formData.title
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+
+      // Guardar en Supabase
+      const newPost = await createPost({
+        title: formData.title,
+        slug,
+        excerpt: formData.excerpt,
+        content: formData.content,
+        published: formData.published,
+        published_at: formData.published ? new Date(formData.date).toISOString() : undefined,
+        featured: false,
+        tags: [formData.category],
+        reading_time: parseInt(formData.readTime.replace(/\D/g, '')) || 5,
+        technologies: formData.technologies,
+        week_number: formData.weekNumber > 0 ? formData.weekNumber : undefined
+      })
+
+      if (!newPost) {
+        throw new Error('Error al crear el post')
+      }
+
+      setSaveMessage('🚀 Exportando y haciendo deploy...')
+
+      // Auto-deploy
+      try {
+        await fetch('/api/export-data', { method: 'POST' })
+        await fetch('/api/auto-deploy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: `Nuevo post: ${formData.title}`
+          })
+        })
+        setSaveMessage('✅ Post publicado y subido a GitHub!')
+      } catch (deployError) {
+        console.error('Error en deploy:', deployError)
+        setSaveMessage('✅ Post guardado (deploy manual requerido)')
+      }
+
+      // Redirigir al blog después de 2 segundos
+      setTimeout(() => {
+        router.push('/admin')
+      }, 2000)
+
+    } catch (error: any) {
+      console.error('Error guardando post:', error)
+      setSaveMessage('❌ Error: ' + error.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -87,20 +137,44 @@ ${formData.content}`
           <div className="flex gap-3">
             <button
               onClick={() => setPreview(!preview)}
-              className="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+              className="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors disabled:opacity-50"
+              disabled={saving}
             >
               <Eye className="w-4 h-4 mr-2" />
               {preview ? 'Editar' : 'Vista previa'}
             </button>
             <button
-              onClick={handleSave}
-              className="flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+              onClick={handleSaveToSupabase}
+              disabled={saving}
+              className="flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save className="w-4 h-4 mr-2" />
-              Guardar
+              {saving ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Publicar
+                </>
+              )}
             </button>
           </div>
         </div>
+
+        {/* Save Message */}
+        {saveMessage && (
+          <div className={`mb-4 px-4 py-3 rounded-lg ${
+            saveMessage.startsWith('✅') 
+              ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 text-green-800 dark:text-green-200' 
+              : saveMessage.startsWith('❌')
+              ? 'bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 text-red-800 dark:text-red-200'
+              : 'bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-200'
+          }`}>
+            {saveMessage}
+          </div>
+        )}
 
         {!preview ? (
           /* Editor Form */
@@ -183,6 +257,38 @@ ${formData.content}`
                   placeholder="Breve descripción del post (aparecerá en la lista de posts)"
                   required
                 />
+              </div>
+
+              {/* Technologies and Week */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Tecnologías (separadas por coma)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.technologies.join(', ')}
+                    onChange={handleTechnologiesChange}
+                    className="w-full px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 dark:text-white"
+                    placeholder="Ej: Python, Pandas, SQL"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Semana del Roadmap (opcional)
+                  </label>
+                  <input
+                    type="number"
+                    name="weekNumber"
+                    value={formData.weekNumber || ''}
+                    onChange={(e) => setFormData({...formData, weekNumber: parseInt(e.target.value) || 0})}
+                    className="w-full px-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 dark:text-white"
+                    placeholder="Ej: 2"
+                    min="0"
+                    max="104"
+                  />
+                </div>
               </div>
 
               {/* Content */}
